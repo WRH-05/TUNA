@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/components/auth/auth-provider"
@@ -11,62 +11,31 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
-  const [debugInfo, setDebugInfo] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(false)
   const { signIn, authError } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get("redirectedFrom") || "/"
 
-  // Log any auth errors to the console for debugging
-  useEffect(() => {
-    if (authError) {
-      console.error("Auth error from context:", authError)
-    }
-  }, [authError])
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
-    setDebugInfo(null)
-
-    console.log("Login attempt started for:", email)
 
     try {
-      // Capture the start time to measure how long the process takes
-      const startTime = performance.now()
-
-      // Attempt to sign in
+      // Authenticate with Supabase
       const result = await signIn(email, password)
+      console.log("Authentication successful:", result.user?.id)
 
-      const endTime = performance.now()
-      console.log(`Login process completed in ${Math.round(endTime - startTime)}ms`)
+      // Force a hard navigation instead of client-side routing
+      // This ensures the middleware re-evaluates the session
+      window.location.href = redirectTo
 
-      // Store debug info
-      setDebugInfo({
-        success: true,
-        processingTime: Math.round(endTime - startTime),
-        result,
-      })
-
-      console.log("Login successful, redirecting to:", redirectTo)
-      router.push(redirectTo)
+      // Note: The following line won't execute due to the redirect above
+      // router.push(redirectTo)
     } catch (err: any) {
       console.error("Login error:", err)
       setError(err.message || "Failed to sign in")
-
-      // Capture detailed error information
-      setDebugInfo({
-        success: false,
-        error: {
-          message: err.message,
-          name: err.name,
-          code: err.code,
-          stack: err.stack,
-        },
-      })
-    } finally {
       setIsLoading(false)
     }
   }
@@ -136,15 +105,6 @@ export default function LoginPage() {
             </Link>
           </div>
         </form>
-
-        {debugInfo && (
-          <div className="mt-4 p-3 bg-gray-100 rounded-md">
-            <details>
-              <summary className="cursor-pointer text-sm font-medium">Debug Information</summary>
-              <pre className="mt-2 text-xs overflow-auto max-h-60">{JSON.stringify(debugInfo, null, 2)}</pre>
-            </details>
-          </div>
-        )}
       </div>
     </div>
   )
