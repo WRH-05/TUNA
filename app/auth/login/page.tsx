@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/components/auth/auth-provider"
@@ -11,22 +11,61 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const [debugInfo, setDebugInfo] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const { signIn } = useAuth()
+  const { signIn, authError } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get("redirectedFrom") || "/"
+
+  // Log any auth errors to the console for debugging
+  useEffect(() => {
+    if (authError) {
+      console.error("Auth error from context:", authError)
+    }
+  }, [authError])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
+    setDebugInfo(null)
+
+    console.log("Login attempt started for:", email)
 
     try {
-      await signIn(email, password)
+      // Capture the start time to measure how long the process takes
+      const startTime = performance.now()
+
+      // Attempt to sign in
+      const result = await signIn(email, password)
+
+      const endTime = performance.now()
+      console.log(`Login process completed in ${Math.round(endTime - startTime)}ms`)
+
+      // Store debug info
+      setDebugInfo({
+        success: true,
+        processingTime: Math.round(endTime - startTime),
+        result,
+      })
+
+      console.log("Login successful, redirecting to:", redirectTo)
       router.push(redirectTo)
     } catch (err: any) {
+      console.error("Login error:", err)
       setError(err.message || "Failed to sign in")
+
+      // Capture detailed error information
+      setDebugInfo({
+        success: false,
+        error: {
+          message: err.message,
+          name: err.name,
+          code: err.code,
+          stack: err.stack,
+        },
+      })
     } finally {
       setIsLoading(false)
     }
@@ -39,9 +78,9 @@ export default function LoginPage() {
           <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">Sign in to your account</h2>
         </div>
 
-        {error && (
+        {(error || authError) && (
           <div className="rounded-md bg-red-50 p-4">
-            <div className="text-sm text-red-700">{error}</div>
+            <div className="text-sm text-red-700">{error || authError}</div>
           </div>
         )}
 
@@ -97,6 +136,15 @@ export default function LoginPage() {
             </Link>
           </div>
         </form>
+
+        {debugInfo && (
+          <div className="mt-4 p-3 bg-gray-100 rounded-md">
+            <details>
+              <summary className="cursor-pointer text-sm font-medium">Debug Information</summary>
+              <pre className="mt-2 text-xs overflow-auto max-h-60">{JSON.stringify(debugInfo, null, 2)}</pre>
+            </details>
+          </div>
+        )}
       </div>
     </div>
   )

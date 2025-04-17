@@ -13,7 +13,7 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
-  const { signUp } = useAuth()
+  const { signUp, authError } = useAuth()
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,10 +24,12 @@ export default function RegisterPage() {
 
     try {
       await signUp(email, password)
-      setMessage("Registration successful! Check your email to confirm your account.")
+      setMessage(
+        "Registration successful! If email confirmation is required, please check your email to confirm your account.",
+      )
       setTimeout(() => {
         router.push("/auth/login")
-      }, 3000)
+      }, 5000)
     } catch (err: any) {
       setError(err.message || "Failed to sign up")
     } finally {
@@ -42,9 +44,22 @@ export default function RegisterPage() {
           <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">Create a new account</h2>
         </div>
 
-        {error && (
+        {(error || authError) && (
           <div className="rounded-md bg-red-50 p-4">
-            <div className="text-sm text-red-700">{error}</div>
+            <div className="text-sm text-red-700">{error || authError}</div>
+            {error?.includes("User already registered") && (
+              <div className="mt-2 text-sm">
+                <p>This email is already registered. Try to:</p>
+                <ul className="list-disc pl-5 mt-1">
+                  <li>
+                    <Link href="/auth/login" className="text-blue-600 hover:underline">
+                      Sign in instead
+                    </Link>
+                  </li>
+                  <li>Use a different email address</li>
+                </ul>
+              </div>
+            )}
           </div>
         )}
 
