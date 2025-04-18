@@ -1,5 +1,8 @@
 "use client"
 
+// Force dynamic rendering for the login page
+export const dynamic = "force-dynamic";
+
 import type React from "react"
 
 import { useState } from "react"
@@ -17,6 +20,7 @@ export default function LoginPage() {
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get("redirectedFrom") || "/"
 
+  // Add a delay before redirection to ensure session propagation
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -27,12 +31,13 @@ export default function LoginPage() {
       const result = await signIn(email, password)
       console.log("Authentication successful:", result.user?.id)
 
-      // Force a hard navigation instead of client-side routing
-      // This ensures the middleware re-evaluates the session
-      window.location.href = redirectTo
+      // Log the redirectTo value
+      console.log("Redirecting to:", redirectTo)
 
-      // Note: The following line won't execute due to the redirect above
-      // router.push(redirectTo)
+      // Add a delay to ensure session propagation
+      setTimeout(() => {
+        router.replace(redirectTo)
+      }, 500) // 500ms delay
     } catch (err: any) {
       console.error("Login error:", err)
       setError(err.message || "Failed to sign in")

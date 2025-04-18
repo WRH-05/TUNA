@@ -37,7 +37,7 @@ async function setupStorage() {
     })
 
     if (policyError) {
-      console.error("Error creating read policy:", policyError)
+      // Removed console.error for read policy error
     }
 
     const { error: insertPolicyError } = await supabase.rpc("create_storage_policy", {
@@ -48,12 +48,12 @@ async function setupStorage() {
     })
 
     if (insertPolicyError) {
-      console.error("Error creating insert policy:", insertPolicyError)
+      // Removed console.error for insert policy error
     }
 
     console.log("Storage setup complete")
   } catch (error) {
-    console.error("Error setting up storage:", error)
+    // Removed console.error for storage setup error
   }
 }
 

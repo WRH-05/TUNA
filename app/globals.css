@@ -10,6 +10,12 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+  .bg-background {
+    background-color: hsl(var(--background));
+  }
+  .text-foreground {
+    color: hsl(var(--foreground));
+  }
 }
 
 @layer base {
@@ -86,7 +92,7 @@ body {
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
   body {
     @apply bg-background text-foreground;

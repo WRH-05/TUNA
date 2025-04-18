@@ -1,5 +1,5 @@
 // Configuration
-const CAPTURE_INTERVAL = 100 // ms
+const CAPTURE_INTERVAL = 50 // ms
 const MAX_CAPTURE_TIME = 500 // ms
 const API_ENDPOINT = "http://localhost:3000/api/capture"
 

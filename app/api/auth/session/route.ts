@@ -4,7 +4,7 @@ import { cookies } from "next/headers"
 
 export async function GET() {
   try {
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const supabase = createServiceRoleClient()
 
     // Get all cookies for debugging
@@ -36,7 +36,9 @@ export async function GET() {
       sessionInfo: data.session
         ? {
             user_id: data.session.user.id,
-            expires_at: new Date(data.session.expires_at * 1000).toISOString(),
+            expires_at: data.session.expires_at
+              ? new Date(data.session.expires_at * 1000).toISOString()
+              : null,
           }
         : null,
     })

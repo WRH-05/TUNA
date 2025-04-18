@@ -7,11 +7,15 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 // Create a single supabase client for the browser
 export const createBrowserClient = () => {
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.error("Missing Supabase environment variables")
     throw new Error("Missing Supabase environment variables")
   }
 
-  return createClient(supabaseUrl, supabaseAnonKey)
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+    },
+  })
 }
 
 // Create a client with the service role key for server operations
@@ -19,7 +23,6 @@ export const createServerClient = () => {
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
   if (!supabaseUrl || !supabaseServiceKey) {
-    console.error("Missing Supabase server environment variables")
     throw new Error("Missing Supabase server environment variables")
   }
 

@@ -3,46 +3,49 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
 export async function middleware(req: NextRequest) {
-  // Create a response object
-  const res = NextResponse.next()
+  const res = NextResponse.next();
 
   try {
-    // Create a Supabase client for the middleware
-    const supabase = createMiddlewareClient({ req, res })
-
-    // Refresh session if expired
+    const supabase = createMiddlewareClient({ req, res });
     const {
       data: { session },
-    } = await supabase.auth.getSession()
+    } = await supabase.auth.getSession();
 
-    // Define protected and auth routes
+    if (session) {
+      console.log("Middleware: Session found for user", session.user.id);
+    } else {
+      console.log("Middleware: No session found");
+    }
+
     const isProtectedRoute =
       !req.nextUrl.pathname.startsWith("/auth") &&
       !req.nextUrl.pathname.startsWith("/_next") &&
       !req.nextUrl.pathname.startsWith("/api/public") &&
-      req.nextUrl.pathname !== "/favicon.ico"
+      req.nextUrl.pathname !== "/favicon.ico";
 
-    const isAuthRoute = req.nextUrl.pathname.startsWith("/auth")
+    const isAuthRoute = req.nextUrl.pathname.startsWith("/auth");
 
-    // Handle protected routes (redirect to login if no session)
     if (isProtectedRoute && !session) {
-      const redirectUrl = req.nextUrl.clone()
-      redirectUrl.pathname = "/auth/login"
-      redirectUrl.searchParams.set("redirectedFrom", req.nextUrl.pathname)
-      return NextResponse.redirect(redirectUrl)
+      const redirectUrl = req.nextUrl.clone();
+      redirectUrl.pathname = "/auth/login";
+      redirectUrl.searchParams.set("redirectedFrom", req.nextUrl.pathname + req.nextUrl.search);
+      return NextResponse.redirect(redirectUrl);
     }
 
-    // Handle auth routes (redirect to home if session exists)
+    if (isProtectedRoute && session) {
+      const redirectedFrom = req.nextUrl.searchParams.get("redirectedFrom") || "/";
+      return NextResponse.redirect(new URL(redirectedFrom, req.url));
+    }
+
     if (isAuthRoute && session) {
-      const redirectUrl = req.nextUrl.clone()
-      redirectUrl.pathname = "/"
-      return NextResponse.redirect(redirectUrl)
+      const redirectUrl = req.nextUrl.clone();
+      redirectUrl.pathname = "/";
+      return NextResponse.redirect(redirectUrl);
     }
 
-    return res
+    return res;
   } catch (error) {
-    console.error("Middleware error:", error)
-    return res
+    return res;
   }
 }
 
