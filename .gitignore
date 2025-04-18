@@ -33,6 +33,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# middleware
-/middleware-manifest.json
-.middleware.ts
+Thumbs.db
