@@ -1,4 +1,4 @@
-"user server"
+"use server"
 
 import { cookies } from "next/headers"
 import { createServerComponentClient, createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
